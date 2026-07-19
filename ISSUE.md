@@ -20,10 +20,10 @@ The starter code is intentionally incomplete. Focus on React state, forms, condi
 
 Example — remove **$100.00** with a **1%** fee:
 
-| | Amount |
-| --- | --- |
-| User receives | $99.00 |
-| Fee | $1.00 |
+|                  | Amount  |
+| ---------------- | ------- |
+| User receives    | $99.00  |
+| Fee              | $1.00   |
 | Balance decrease | $100.00 |
 
 ### UI

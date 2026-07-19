@@ -6,6 +6,7 @@ import {
   formatCurrency,
   parseAmountInput,
   type Entry,
+  calculateFeeCents,
 } from "@/balance";
 import { useBalance } from "@/useBalance";
 
@@ -69,5 +70,37 @@ describe("useBalance", () => {
 
     expect(result.current.balanceCents).toBe(0);
     expect(result.current.entries).toHaveLength(0);
+  });
+
+  it("applies maximum 5% fee", () => {
+    const { result } = renderHook(() => useBalance());
+
+    act(() => {
+      result.current.add(10_000);
+    });
+
+    act(() => {
+      result.current.setRemoveFeePercent(5);
+    });
+
+    act(() => {
+      result.current.remove(10_000);
+    });
+
+    const removeEntry = result.current.entries[0];
+
+    expect(removeEntry.type).toBe("remove");
+    expect(removeEntry.amountCents).toBe(10_000);
+    expect(removeEntry.feeCents).toBe(500);
+    expect(removeEntry.netAmountCents).toBe(9_500);
+
+    // Balance should reduce by gross amount
+    expect(result.current.balanceCents).toBe(0);
+  });
+
+  it("calculates fee correctly", () => {
+    expect(calculateFeeCents(10_000, 5)).toBe(500);
+    expect(calculateFeeCents(10_000, 1)).toBe(100);
+    expect(calculateFeeCents(10_000, 0)).toBe(0);
   });
 });

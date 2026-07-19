@@ -39,11 +39,11 @@ tests/
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `npm test` | Run tests |
-| `npm run test:watch` | Watch mode |
-| `make check` | Format, lint, and test |
+| Command              | Description            |
+| -------------------- | ---------------------- |
+| `npm test`           | Run tests              |
+| `npm run test:watch` | Watch mode             |
+| `make check`         | Format, lint, and test |
 
 ---
 

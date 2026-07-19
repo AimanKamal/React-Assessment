@@ -6,6 +6,8 @@ import {
   DEFAULT_SETTINGS,
   type AppState,
   type Entry,
+  MAX_REMOVE_FEE_PERCENT,
+  calculateFeeCents,
 } from "./balance";
 
 export function useBalance() {
@@ -33,19 +35,28 @@ export function useBalance() {
     }));
   }, []);
 
-  const remove = useCallback((amountCents: number) => {
-    const entry: Entry = {
-      id: createEntryId(),
-      type: "remove",
-      amountCents,
-      createdAt: new Date().toISOString(),
-    };
+  const remove = useCallback(
+    (amountCents: number) => {
+      const feeCents = calculateFeeCents(
+        amountCents,
+        state.settings.removeFeePercent,
+      );
+      const entry: Entry = {
+        id: createEntryId(),
+        type: "remove",
+        amountCents,
+        feeCents,
+        netAmountCents: amountCents - feeCents,
+        createdAt: new Date().toISOString(),
+      };
 
-    setState((current) => ({
-      ...current,
-      entries: [entry, ...current.entries],
-    }));
-  }, []);
+      setState((current) => ({
+        ...current,
+        entries: [entry, ...current.entries],
+      }));
+    },
+    [state.settings],
+  );
 
   const reset = useCallback(() => {
     setState({
@@ -54,6 +65,23 @@ export function useBalance() {
     });
   }, []);
 
+  const setRemoveFeePercent = useCallback(
+    (removeFeePercent: number): boolean => {
+      if (removeFeePercent < 0 || removeFeePercent > MAX_REMOVE_FEE_PERCENT) {
+        return false;
+      }
+      setState((current) => ({
+        ...current,
+        settings: {
+          ...current.settings,
+          removeFeePercent,
+        },
+      }));
+      return true;
+    },
+    [],
+  );
+
   return {
     balanceCents,
     entries: state.entries,
@@ -61,5 +89,6 @@ export function useBalance() {
     add,
     remove,
     reset,
+    setRemoveFeePercent,
   };
 }

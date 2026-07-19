@@ -4,6 +4,8 @@ export interface Entry {
   id: string;
   type: EntryType;
   amountCents: number;
+  feeCents?: number;
+  netAmountCents?: number;
   createdAt: string;
 }
 
@@ -57,4 +59,11 @@ export function parseAmountInput(value: string): number | null {
 
 export function createEntryId(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+export function calculateFeeCents(
+  amountCents: number,
+  removeFeePercent: number,
+): number {
+  return Math.round(amountCents * (removeFeePercent / 100));
 }

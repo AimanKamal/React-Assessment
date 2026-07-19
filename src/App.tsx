@@ -1,14 +1,11 @@
 import { useState, type FormEvent } from "react";
 
-import {
-  formatCurrency,
-  parseAmountInput,
-  type Entry,
-} from "./balance";
+import { formatCurrency, parseAmountInput, type Entry } from "./balance";
 import { useBalance } from "./useBalance";
 
 export function App() {
-  const { balanceCents, entries, settings, add, remove } = useBalance();
+  const { balanceCents, entries, settings, add, remove, setRemoveFeePercent } =
+    useBalance();
 
   return (
     <div className="app">
@@ -28,7 +25,10 @@ export function App() {
 
         <AmountForm balanceCents={balanceCents} onAdd={add} onRemove={remove} />
 
-        <FeeSettings settings={settings} />
+        <FeeSettings
+          settings={settings}
+          setRemoveFeePercent={setRemoveFeePercent}
+        />
 
         <section aria-label="Entry history" className="panel">
           <h2>History</h2>
@@ -53,8 +53,9 @@ function AmountForm({ balanceCents, onAdd, onRemove }: AmountFormProps) {
     event.preventDefault();
     setError(null);
 
-    const formData = new FormData(event.currentTarget);
-    const action = formData.get("action");
+    const submitEvent = event.nativeEvent as SubmitEvent;
+    const submitter = submitEvent.submitter as HTMLButtonElement;
+    const action = submitter?.value;
 
     if (action !== "add" && action !== "remove") {
       setError("Choose add or remove.");
@@ -120,16 +121,31 @@ function AmountForm({ balanceCents, onAdd, onRemove }: AmountFormProps) {
 
 interface FeeSettingsProps {
   settings: ReturnType<typeof useBalance>["settings"];
+  setRemoveFeePercent: ReturnType<typeof useBalance>["setRemoveFeePercent"];
 }
 
-function FeeSettings({ settings }: FeeSettingsProps) {
+function FeeSettings({ settings, setRemoveFeePercent }: FeeSettingsProps) {
+  const [error, setError] = useState<string | null>(null);
   return (
     <section aria-label="Fee settings" className="panel">
       <h2>Fee settings</h2>
-      <p className="hint">
-        Wire up fee configuration here. Requirements are in{" "}
-        <code>ISSUE.md</code>.
-      </p>
+      <label htmlFor="remove-fee">Remove fee (%)</label>
+      <input
+        id="remove-fee"
+        type="number"
+        min={0}
+        max={5}
+        value={settings.removeFeePercent}
+        onChange={(event) => {
+          const result = setRemoveFeePercent(Number(event.target.value));
+          setError(result ? null : "Fee must be between 0% and 5%");
+        }}
+      />
+      {error && (
+        <p role="alert" className="bg-red-300 text-white p-4">
+          {error}
+        </p>
+      )}
       <p>
         Current fee: <strong>{settings.removeFeePercent}%</strong>
       </p>
@@ -151,6 +167,13 @@ function EntryList({ entries }: { entries: Entry[] }) {
             {entry.type === "add" ? "+" : "-"}
             {formatCurrency(entry.amountCents)}
           </span>
+          {entry.type === "remove" && entry.feeCents !== undefined ? (
+            <div>
+              <p>Gross: {formatCurrency(entry.amountCents)}</p>
+              <p>Fee: {formatCurrency(entry.feeCents)}</p>
+              <p>Received: {formatCurrency(entry.netAmountCents ?? 0)}</p>
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>
